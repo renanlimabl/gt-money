@@ -20,7 +20,7 @@ interface ITransaction {
 type ITransactionInput = Omit<ITransaction, 'id' | 'createdAt'>
 interface ITransactionsContextData {
   transactions: ITransaction[];
-  createTransaction: (transaction: ITransactionInput) => void;
+  createTransaction: (transaction: ITransactionInput) => Promise<void>;
 }
 
 
@@ -44,8 +44,19 @@ export function TransactionsProvider({ children }: ITransactionsProviderProps) {
       .then(response => setTransactions(response.data.transactions))
   }, [])
 
-  function createTransaction(transaction: ITransactionInput) {
-    api.post('/transactions', transaction)
+  async function createTransaction(transactionInput: ITransactionInput) {
+    const response = await api.post('/transactions', {
+      ...transactionInput,
+      createdAt: new Date()
+    })
+    const { transaction } = response.data;
+
+    setTransactions(
+      [
+        ...transactions,
+        transaction
+      ]
+    )
   }
 
   // COMO PRECISAMOS PASSAR TAMBÉM UMA FUNÇÃO NO VALUE, IREMOS UTILIZAR UM OBJETO DENTRO DE VALUE.
